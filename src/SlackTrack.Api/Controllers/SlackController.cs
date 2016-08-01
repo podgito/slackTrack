@@ -1,4 +1,5 @@
 ﻿using SlackTrack.Commands;
+using SlackTrack.Dal.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +20,20 @@ namespace SlackTrack.Api.Controllers
             Trace.TraceInformation(command.Channel_name);
             Trace.TraceInformation(command.Command);
 
-            return Ok(new { text = "Got it!" });
+
+            var context = new SlackTrack.Dal.TaskDBContext();
+
+            context.Users.Add(new Dal.Models.SlackUser { Id = "123abc", Name = "Padraic", TeamId = "test" });
+
+            context.Teams.Add(new SlackTeam { Id = "test", Name = "testTeam" });
+
+            context.SaveChanges();
+
+            var action = new TaskLogItemCommandAction();
+
+            var response = action.Action(command);
+
+            return Ok(response);
         }
 
 

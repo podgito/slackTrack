@@ -13,44 +13,53 @@ namespace SlackTrack.Commands.Tests
     public class LogTaskCommandActionTest
     {
 
-        LogTaskCommandAction commandAction;
+        TaskLogItemCommandAction commandAction;
 
         [SetUp]
         public void Setup()
         {
-            commandAction = new LogTaskCommandAction();
+            commandAction = new TaskLogItemCommandAction();
         }
 
         [Test]
-        [TestCaseSource(typeof(CommandTextSource))]
-        public void IsMatch_For_All_Following_Command_Text(string text)
+        [TestCaseSource(typeof(CommandTextMatchingSource), "TestCases")]
+        public bool IsMatch_For_All_Following_Command_Text(string text)
         {
             //Assert
             var command = new SlackCommand { Text = text };
 
             //Act
-            var isMatch = commandAction.IsMatch(command);
-
-            //Assert
-            isMatch.ShouldBeTrue();
+            return commandAction.IsMatch(command);
         }
 
-        private class CommandTextSource : IEnumerable
+        private class CommandTextMatchingSource
         {
-            public IEnumerator GetEnumerator()
+            public static IEnumerable TestCases
             {
-                var list = new List<string> {
-                    "2 hours building new feature",
-                    "2 hours on new feature",
-                    "2 hours working on building new feature",
-                    "2.5 hours working on building new feature",
-                    "2.5 hours  working on building new feature ",
-
-                };
-
-                return list.GetEnumerator();
+                get
+                {
+                    yield return new TestCaseData("1 hour building new feature").Returns(true);
+                    yield return new TestCaseData("2 hours building new feature").Returns(true);
+                    yield return new TestCaseData("2h building new feature").Returns(true);
+                    yield return new TestCaseData("2 h building new feature").Returns(true);
+                    yield return new TestCaseData("2 hours on new feature").Returns(true);
+                    yield return new TestCaseData("2 hours working on major fix").Returns(true);
+                    yield return new TestCaseData("2.5 hours working on building new feature").Returns(true);
+                    yield return new TestCaseData("2.5 hours  working on building new feature ").Returns(true);
+                    yield return new TestCaseData("2.5 hours on new feature").Returns(true);
+                    yield return new TestCaseData("2.5 hours on new feature #newfeature").Returns(true);
+                    yield return new TestCaseData("2.5 hours  on new feature#newfeature ").Returns(true);
+                    yield return new TestCaseData(".5 hours on new feature#newfeature").Returns(true);
+                    yield return new TestCaseData("0.5 hours on new feature#newfeature").Returns(true);
+                    yield return new TestCaseData("30 mins on new feature#newfeature").Returns(true);
+                    yield return new TestCaseData("30 minutes on new feature#newfeature").Returns(true);
+                    yield return new TestCaseData("1 hour").Returns(false);
+                    yield return new TestCaseData("asdfasdf").Returns(false);
+                }
             }
         }
+
+        
 
     }
 }
